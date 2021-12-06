@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <vector>
+#include <cmath>
 
 std::vector<double> xsquared(double x){
   return {x*x};
@@ -12,7 +13,16 @@ std::vector<double> xcubed(double x){
   return {x*x*x};
 }
 
+std::vector<double> circle(double x){
+  double res = std::sqrt(4 - x*x);
+  return {-res, res, res*x, -res*x};
+}
 
+std::vector<double> weird(double x){
+  double result = std::log(x);
+
+  return {result, -result, result*x, -x*result};
+}
 
 int main(int argc, char** argv) {
   
@@ -23,40 +33,38 @@ int main(int argc, char** argv) {
   Grapher graph;
   
   double moveamt = 0.1;
-  double cx = 0, cy = 0;
 
-  graph.addFunc(xcubed);
-  graph.addFunc(xsquared);
+  graph.addFunc(xcubed, MAGENTA);
+  graph.addFunc(xsquared, MAROON);
+  graph.addFunc(circle, BLUE);
+  graph.addFunc(weird, RED);
 
   SetTargetFPS(60);
 
   while( !WindowShouldClose() ){
     
     if( IsKeyDown(KEY_DOWN) ){
-      cy += moveamt;
+      graph.shiftCenterY(moveamt);
     }
     if( IsKeyDown(KEY_UP) ){
-      cy -= moveamt;
+      graph.shiftCenterY(-moveamt);
     }
     if( IsKeyDown(KEY_RIGHT) ){
-      cx += moveamt;
+      graph.shiftCenterX(moveamt);
     }
     if( IsKeyDown(KEY_LEFT) ){
-      cx -= moveamt;
+      graph.shiftCenterX(-moveamt);
     }
     if( IsKeyDown(KEY_S) ){
-      graph.zoom(0.1);
+      graph.zoomPct(0.90);
     }
     if( IsKeyDown(KEY_W) ){
-      graph.zoom(-0.1);
+      graph.zoomPct(1.10);
     }
-
-
-    graph.setCenter(cx, cy);
-    
+ 
     BeginDrawing();
     ClearBackground(RAYWHITE);
-    
+    DrawFPS(0,0); 
     graph.drawAxes(); 
     graph.drawFuncs();
 

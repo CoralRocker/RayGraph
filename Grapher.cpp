@@ -46,7 +46,7 @@ void Grapher::drawAxes(double centerX, double centerY){
   }
 }
 
-void Grapher::drawFunc(double centerX, double centerY, function<vector<double>(double)> func){
+void Grapher::drawFunc(double centerX, double centerY, GraphFunction func){
   double width = GetScreenWidth(),
          height = GetScreenHeight();
   
@@ -59,7 +59,7 @@ void Grapher::drawFunc(double centerX, double centerY, function<vector<double>(d
         if( pt > (centerY - this->windowy) && pt < (centerY + this->windowy) ){
           double ypos = abs(pt - centerY + this->windowy) / (2 * this->windowy);
           int ypt = ypos * height;
-          DrawPixel(xpx, ypt, BLACK);
+          DrawPixel(xpx, ypt, func.color);
         }
       }
     }
