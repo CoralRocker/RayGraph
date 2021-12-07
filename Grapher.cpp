@@ -16,10 +16,29 @@ int getAxis(double center, double size, int scrWH){
   return axis;
 }
 
+Grapher::Grapher(int w, int h): width(w), height(h) {
+  tex = LoadRenderTexture(width, height);
+}
+
+Grapher::Grapher() : width(GetScreenWidth()), height(GetScreenHeight()) {
+  tex = LoadRenderTexture(width, height);
+}
+
+Grapher::~Grapher() {
+  UnloadRenderTexture(tex);
+}
+
+void Grapher::clearDrawing() { 
+  BeginTextureMode(tex);
+  ClearBackground(RAYWHITE); 
+  EndTextureMode();
+}
 
 void Grapher::drawAxes(double centerX, double centerY){
-  double width = GetScreenWidth(),
-         height = GetScreenHeight();
+  
+  if( drawn ) return;
+
+  BeginTextureMode(tex);
   
   // Where on the screen the Axes should be drawn...
   int yAxis = getAxis(centerX, this->windowx, width),
@@ -44,11 +63,11 @@ void Grapher::drawAxes(double centerX, double centerY){
       DrawLine(yAxis-2, marker, yAxis+2, marker, BLACK);
     }
   }
+
+  EndTextureMode();
 }
 
 void Grapher::drawFunc(double centerX, double centerY, GraphFunction func){
-  double width = GetScreenWidth(),
-         height = GetScreenHeight();
   
   for( int xpx = 0; xpx < width; xpx++ ){
     for( double xres = double(xpx) - 0.5; xres < (double(xpx) + 0.5); xres += (1.f / this->resolution) ){
@@ -67,7 +86,26 @@ void Grapher::drawFunc(double centerX, double centerY, GraphFunction func){
 }
 
 void Grapher::drawFuncs(double centerX, double centerY) {
+  if( drawn ) return;
+
+  BeginTextureMode(tex);
+
   for( auto &fn : funcs ){
     drawFunc(centerX, centerY, fn);
   }
+
+  EndTextureMode();
+  
+  drawn = true;
+}
+
+void Grapher::draw(double centerX, double centerY){
+  if( !drawn ){
+    clearDrawing();
+    drawAxes(centerX, centerY);
+    drawFuncs(centerX, centerY);
+  }
+  
+  DrawTexture(tex.texture, 0, 0, WHITE);
+
 }

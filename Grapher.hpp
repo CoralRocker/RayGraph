@@ -3,6 +3,8 @@
 #include <functional>
 #include <vector>
 
+#define DEFAULT_ZOOM 10
+
 using namespace std;
 
 class GraphFunction {
@@ -18,15 +20,19 @@ class GraphFunction {
 class Grapher {
   public:
     
-    void addFunc(GraphFunction func) { funcs.push_back(func); }
-    void addFunc(const function<vector<double>(double)> &f, Color clr = BLACK) { addFunc(GraphFunction(f, clr)); }
+    Grapher();
+    Grapher(int, int);
+    ~Grapher();
 
-    void setCenter(double x, double y) { cx = x; cy = y; }
-    void setCenterX(double x) { cx = x; }
-    void setCenterY(double y) { cy = y; }
-    void shiftCenter(double x, double y) { cx += x*windowx; cy += y*windowy; }
-    void shiftCenterX(double x) { cx += x*windowx; }
-    void shiftCenterY(double y) { cy += y*windowy; }
+    void addFunc(GraphFunction func) { drawn = false; funcs.push_back(func); }
+    void addFunc(const function<vector<double>(double)> &f, Color clr = BLACK) { drawn = false; addFunc(GraphFunction(f, clr)); }
+
+    void setCenter(double x, double y) { drawn = false; cx = x; cy = y; }
+    void setCenterX(double x) { drawn = false; cx = x; }
+    void setCenterY(double y) { drawn = false; cy = y; }
+    void shiftCenter(double x, double y) { drawn = false; cx += x*windowx; cy += y*windowy; }
+    void shiftCenterX(double x) { drawn = false; cx += x*windowx; }
+    void shiftCenterY(double y) { drawn = false; cy += y*windowy; }
 
 
     void drawAxes(double centerX, double centerY);
@@ -34,22 +40,35 @@ class Grapher {
 
     void drawFuncs(double centerX, double centerY);
     void drawFuncs() { drawFuncs(cx, cy); }
+    
+    void draw(double centerX, double centerY);
+    void draw() { draw(cx, cy); }
+    
+    void resetZoom() { drawn = false; windowx = DEFAULT_ZOOM; windowy = DEFAULT_ZOOM; }
+    void zoom(double amt) { drawn = false; windowx += amt; windowy += amt; }
+    void zoomX(double amt) { drawn = false; windowx += amt; }
+    void zoomY(double amt) { drawn = false; windowy += amt; }
+    void zoomPct(double pct) { drawn = false; windowx *= 1.f + (1.f-pct); windowy *= 1.f + (1.f-pct); }  
+    
+    double getCenterX() { return cx; }
+    double getCenterY() { return cy; }
+    double getWindowX() { return windowx; }
+    double getWindowY() { return windowy; }
 
+  private:  
+    void clearDrawing(); 
+    
     void drawFunc(double centerX, double centerY, GraphFunction func);
     void drawFunc(GraphFunction func) { drawFunc(cx, cy, func); }
     
-    void zoom(double amt) { windowx += amt; windowy += amt; }
-    void zoomX(double amt) { windowx += amt; }
-    void zoomY(double amt) { windowy += amt; }
-    void zoomPct(double pct) { windowx *= 1.f + (1.f-pct); windowy *= 1.f + (1.f-pct); }  
-    
+    bool drawn = false;
 
-  private:  
+    const int width, height;
     double cx = 0, cy = 0;
 
     double resolution = 100;
-    double windowx = 10,
-           windowy = 10;
+    double windowx = DEFAULT_ZOOM,
+           windowy = DEFAULT_ZOOM;
     
     bool graduations = true;
     double grad_freq = 0.5;
@@ -59,6 +78,6 @@ class Grapher {
     // vector<double> func(double);
     vector<GraphFunction> funcs;
     
-
+    RenderTexture2D tex;
        
 };
