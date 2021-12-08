@@ -7,13 +7,15 @@
 
 using namespace std;
 
+typedef function<vector<double>(double)> graphableFunc;
+
 class GraphFunction {
   public:
     
-    GraphFunction(const function<vector<double>(double)> &f, Color clr) : fn(f), color(clr) {}
+    GraphFunction(const graphableFunc &f, Color clr) : fn(f), color(clr) {}
     vector<double> operator()(double x) { return fn(x); }
     
-    function<vector<double>(double)> fn;
+    graphableFunc fn;
     Color color;
 };
 
@@ -23,9 +25,12 @@ class Grapher {
     Grapher();
     Grapher(int, int);
     ~Grapher();
+    
+    size_t findfunc(const graphableFunc &fn, const function<bool(const graphableFunc&, const graphableFunc&)> &comp);
 
     void addFunc(GraphFunction func) { drawn = false; funcs.push_back(func); }
-    void addFunc(const function<vector<double>(double)> &f, Color clr = BLACK) { drawn = false; addFunc(GraphFunction(f, clr)); }
+    void addFunc(const graphableFunc &f, Color clr = BLACK) { drawn = false; addFunc(GraphFunction(f, clr)); }
+    void addFunc(const function<double(double)> &f, Color clr = BLACK) { drawn = false; graphableFunc lambda = [=](double x)->vector<double>{ return {f(x)}; }; addFunc(lambda, clr); }
 
     void setCenter(double x, double y) { drawn = false; cx = x; cy = y; }
     void setCenterX(double x) { drawn = false; cx = x; }
@@ -41,6 +46,9 @@ class Grapher {
     void drawFuncs(double centerX, double centerY);
     void drawFuncs() { drawFuncs(cx, cy); }
     
+    void drawWidgets(double centerX, double centerY, double &zoomamt, double &moveamt, bool &reset, bool &zoomin, bool &zoomout);
+    void drawWidgets(double &zoomamt, double &moveamt, bool &reset, bool &zoomin, bool &zoomout) { drawWidgets(cx, cy, zoomamt, moveamt, reset, zoomin, zoomout); }
+
     void draw(double centerX, double centerY);
     void draw() { draw(cx, cy); }
     

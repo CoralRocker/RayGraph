@@ -64,7 +64,9 @@ int main(int argc, char** argv) {
   clearBuf(txbuf);
   double moveamt = DEFAULT_MOVE_AMT,
          zoomamt = DEFAULT_ZOOM_AMT;
-  bool resetscr = false;
+  bool resetscr = false,
+       zoomIn = false,
+       zoomOut = false;
   // Counter to slow down repeated inputs
   unsigned long long framenum = 0;
   int frames_mouse_delay = 3;
@@ -118,63 +120,64 @@ int main(int argc, char** argv) {
     graph.draw(); // Graph integrated drawing function
     // DrawFPS(0,0);
     
-    GuiPanel({grfS, 0, scrW - grfS, scrH});
+    graph.drawWidgets(zoomamt, moveamt, resetscr, zoomIn, zoomOut);
+    // GuiPanel({grfS, 0, scrW - grfS, scrH});
 
-    // Movement and Zoom sliders
-    sprintf(txbuf, "Movement %%: %.3f", moveamt*100);  
-    moveamt = GuiSliderBar({grfS, 0, scrW - grfS, 24}, nullptr, nullptr, moveamt, 0, 0.5);
-    GuiLabel({grfS, 24, scrW - grfS, 12}, txbuf);
-    clearBuf(txbuf);
+    // // Movement and Zoom sliders
+    // sprintf(txbuf, "Movement %%: %.3f", moveamt*100);  
+    // moveamt = GuiSliderBar({grfS, 0, scrW - grfS, 24}, nullptr, nullptr, moveamt, 0, 0.5);
+    // GuiLabel({grfS, 24, scrW - grfS, 12}, txbuf);
+    // clearBuf(txbuf);
 
-    sprintf(txbuf, "Zoom %%: %.3f", zoomamt*100);
-    zoomamt = GuiSliderBar({grfS, 36, scrW - grfS, 24}, nullptr, nullptr, zoomamt, 0, 0.5);
-    GuiLabel({grfS, 60, scrW - grfS, 12}, txbuf);
-    clearBuf(txbuf);
-    
-    // Reset Screen Button
-    resetscr = GuiButton({grfS, scrH-24, scrW - grfS, 24}, "Reset Window");
-    
-    // Graph Info Labels
-    sprintf(txbuf, "X Range: (%.2f, %.2f)", graph.getCenterX()-graph.getWindowX(), graph.getCenterX()+graph.getWindowX());
-    GuiStatusBar(XRange, txbuf);
-    clearBuf(txbuf);
+    // sprintf(txbuf, "Zoom %%: %.3f", zoomamt*100);
+    // zoomamt = GuiSliderBar({grfS, 36, scrW - grfS, 24}, nullptr, nullptr, zoomamt, 0, 0.5);
+    // GuiLabel({grfS, 60, scrW - grfS, 12}, txbuf);
+    // clearBuf(txbuf);
+    // 
+    // // Reset Screen Button
+    // resetscr = GuiButton({grfS, scrH-24, scrW - grfS, 24}, "Reset Window");
+    // 
+    // // Graph Info Labels
+    // sprintf(txbuf, "X Range: (%.2f, %.2f)", graph.getCenterX()-graph.getWindowX(), graph.getCenterX()+graph.getWindowX());
+    // GuiStatusBar(XRange, txbuf);
+    // clearBuf(txbuf);
 
-    sprintf(txbuf, "Y Range: (%.2f, %.2f)", graph.getCenterY()-graph.getWindowY(), graph.getCenterY()+graph.getWindowY());
-    GuiStatusBar(YRange, txbuf);
-    clearBuf(txbuf);
-    
-    // Zoom Buttons
-    GuiSetStyle(BUTTON, TEXT_ALIGNMENT, GUI_TEXT_ALIGN_LEFT);
+    // sprintf(txbuf, "Y Range: (%.2f, %.2f)", graph.getCenterY()-graph.getWindowY(), graph.getCenterY()+graph.getWindowY());
+    // GuiStatusBar(YRange, txbuf);
+    // clearBuf(txbuf);
+    // 
+    // // Zoom Buttons
+    // GuiSetStyle(BUTTON, TEXT_ALIGNMENT, GUI_TEXT_ALIGN_LEFT);
 
-    if( GuiButton(ZoomIn, GuiIconText(RICON_ZOOM_IN, "zoom in")) ){
-      graph.zoomPct(1.f + zoomamt);
-    }
-    if( GuiButton(ZoomOut, GuiIconText(RICON_ZOOM_OUT, "zoom out")) ){
-      graph.zoomPct(1.f - zoomamt);
-    }
-    GuiSetStyle(BUTTON, TEXT_ALIGNMENT, GUI_TEXT_ALIGN_CENTER);
+    // if( GuiButton(ZoomIn, GuiIconText(RICON_ZOOM_IN, "zoom in")) ){
+    //   graph.zoomPct(1.f + zoomamt);
+    // }
+    // if( GuiButton(ZoomOut, GuiIconText(RICON_ZOOM_OUT, "zoom out")) ){
+    //   graph.zoomPct(1.f - zoomamt);
+    // }
+    // GuiSetStyle(BUTTON, TEXT_ALIGNMENT, GUI_TEXT_ALIGN_CENTER);
 
 
-    // Arrow icons
-    // Up Arrow
-    if( GuiButton(UpArrow, GuiIconText(RICON_ARROW_UP, "")) ){
-      graph.shiftCenterY(moveamt);
-    } 
-    
-    // Down Arrow
-    if( GuiButton(DownArrow, GuiIconText(RICON_ARROW_DOWN, "")) ){
-      graph.shiftCenterY(-moveamt);
-    } 
-    
-    // Right Arrow
-    if( GuiButton(RightArrow, GuiIconText(RICON_ARROW_RIGHT, "")) ){
-      graph.shiftCenterX(moveamt);
-    }
+    // // Arrow icons
+    // // Up Arrow
+    // if( GuiButton(UpArrow, GuiIconText(RICON_ARROW_UP, "")) ){
+    //   graph.shiftCenterY(moveamt);
+    // } 
+    // 
+    // // Down Arrow
+    // if( GuiButton(DownArrow, GuiIconText(RICON_ARROW_DOWN, "")) ){
+    //   graph.shiftCenterY(-moveamt);
+    // } 
+    // 
+    // // Right Arrow
+    // if( GuiButton(RightArrow, GuiIconText(RICON_ARROW_RIGHT, "")) ){
+    //   graph.shiftCenterX(moveamt);
+    // }
 
-    // Left Arrow
-    if( GuiButton(LeftArrow, GuiIconText(RICON_ARROW_LEFT, "")) ){
-      graph.shiftCenterX(-moveamt);
-    } 
+    // // Left Arrow
+    // if( GuiButton(LeftArrow, GuiIconText(RICON_ARROW_LEFT, "")) ){
+    //   graph.shiftCenterX(-moveamt);
+    // } 
 
     EndDrawing();
 
