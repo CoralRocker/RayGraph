@@ -1,9 +1,12 @@
 #include "Grapher.hpp"
 #include "raylib.h"
 #include "raymath.h"
+
+#define RAYGUI_IMPLEMENTATION
 #include "raygui.h"
 
 #include <cstdio>
+#include <iostream>
 
 /**
  * The default comparator for graphable functions. Compares the values returned by the functions at mulptiple x values ranging from extremely small to extremely large. 
@@ -66,11 +69,12 @@ int getAxis(double center, double size, int scrWH){
   return axis;
 }
 
-Grapher::Grapher(int w, int h): width(w), height(h) {
+Grapher::Grapher(int w, int h): UpArrow({(w/2.f)-12, 0, 24, 24}), DownArrow({(w/2.f)-12, w-24.f, 24, 24}), RightArrow({w-24.f, (w/2.f)-12, 24, 24}), LeftArrow({0, (w/2.f)-12, 24, 24}), ZoomOut({0,24,72,24}), ZoomIn({0,0,72,24}), XRange({w*1.f, 72, 160, 24}), YRange({w*1.f, 96, 160, 24}), width(w), height(h) {
   tex = LoadRenderTexture(width, height);
+  GuiLoadIcons("GrapherIcons.rgi", false);
 }
 
-Grapher::Grapher() : width(GetScreenWidth()), height(GetScreenHeight()) {
+Grapher::Grapher() : Grapher(GetScreenWidth(), GetScreenHeight()) {
   tex = LoadRenderTexture(width, height);
 }
 
@@ -163,14 +167,6 @@ void Grapher::drawFuncs(double centerX, double centerY) {
 void Grapher::drawWidgets(double centerX, double centerY, double &zoomamt, double &moveamt, bool &reset, bool &zoomin, bool &zoomout){
   /* GUI Rectangles */
   const int panelW = 160;
-  static const Rectangle UpArrow = {(width/2.f)-12, 0, 24, 24},
-                         DownArrow = {(width/2.f)-12, width-24.f, 24, 24},
-                         RightArrow = {width-24.f, (width/2.f)-12, 24, 24},
-                         LeftArrow = {0, (width/2.f)-12, 24, 24},
-                         ZoomOut = {0, 24, 72, 24},
-                         ZoomIn = {0, 0, 72, 24},
-                         XRange = {width*1.f, 72, 160, 24},
-                         YRange = {width*1.f, 96, 160, 24};
   char txt[256];
   auto clrbuf = [](char txt[256]){ for( int i = 0; i < 256; i++ ) txt[i] = 0x00; };
   clrbuf(txt); 
@@ -199,6 +195,36 @@ void Grapher::drawWidgets(double centerX, double centerY, double &zoomamt, doubl
   sprintf(txt, "Y Range: (%.2f, %.2f)", this->getCenterY()-this->getWindowY(), this->getCenterY()+this->getWindowY());
   GuiStatusBar(YRange, txt);
   clrbuf(txt);
+  
+  // Arrow icons
+  // Up Arrow
+  if( GuiButton(UpArrow, GuiIconText(RICON_ARROW_UP, "")) ){
+    shiftCenterY(moveamt);
+  }   
+  // Down Arrow
+  if( GuiButton(DownArrow, GuiIconText(RICON_ARROW_DOWN, "")) ){
+    shiftCenterY(-moveamt);
+  } 
+  // Right Arrow
+  if( GuiButton(RightArrow, GuiIconText(RICON_ARROW_RIGHT, "")) ){
+    shiftCenterX(moveamt);
+  }
+  // Left Arrow
+  if( GuiButton(LeftArrow, GuiIconText(RICON_ARROW_LEFT, "")) ){
+    shiftCenterX(-moveamt);
+  } 
+  
+  // Zoom Buttons
+  GuiSetStyle(BUTTON, TEXT_ALIGNMENT, GUI_TEXT_ALIGN_LEFT);
+
+  if( GuiButton(ZoomIn, GuiIconText(RICON_ZOOM_IN, "zoom in")) ){
+    zoomPct(1.f + zoomamt);
+  }
+  if( GuiButton(ZoomOut, GuiIconText(RICON_ZOOM_OUT, "zoom out")) ){
+    zoomPct(1.f - zoomamt);
+  }
+  GuiSetStyle(BUTTON, TEXT_ALIGNMENT, GUI_TEXT_ALIGN_CENTER);
+
 
 }
 
@@ -211,4 +237,53 @@ void Grapher::draw(double centerX, double centerY){
   
   DrawTexture(tex.texture, 0, 0, WHITE);
 
+}
+
+void Grapher::checkInput(double moveamt, double zoomamt, bool &reset, bool zoomIn, bool zoomOut, size_t framenum, size_t frames_mouse_delay){
+  // Check for graph movement
+  if( IsKeyDown(KEY_DOWN) || ((framenum%frames_mouse_delay) == 0 && IsMouseButtonDown(MOUSE_BUTTON_RIGHT) && CheckCollisionPointRec(GetMousePosition(), DownArrow)) ){
+    shiftCenterY(-moveamt);
+  }
+  if( IsKeyDown(KEY_UP) || ((framenum%frames_mouse_delay) == 0 && IsMouseButtonDown(MOUSE_BUTTON_RIGHT) && CheckCollisionPointRec(GetMousePosition(), UpArrow)) ){
+    shiftCenterY(moveamt);
+  }
+  if( IsKeyDown(KEY_RIGHT) || ((framenum%frames_mouse_delay) == 0 && IsMouseButtonDown(MOUSE_BUTTON_RIGHT) && CheckCollisionPointRec(GetMousePosition(), RightArrow)) ){
+    shiftCenterX(moveamt);
+  }
+  if( IsKeyDown(KEY_LEFT) || ((framenum%frames_mouse_delay) == 0 && IsMouseButtonDown(MOUSE_BUTTON_RIGHT) && CheckCollisionPointRec(GetMousePosition(), LeftArrow)) ){
+    shiftCenterX(-moveamt);
+  }
+
+  // Check for zoom in/out
+  if( IsKeyDown(KEY_S)  || ((framenum%frames_mouse_delay) == 0 && IsMouseButtonDown(MOUSE_BUTTON_RIGHT) && CheckCollisionPointRec(GetMousePosition(), ZoomOut)) ){
+    zoomPct(-zoomamt);
+  }
+  if( IsKeyDown(KEY_W) || ((framenum%frames_mouse_delay) == 0 && IsMouseButtonDown(MOUSE_BUTTON_RIGHT) && CheckCollisionPointRec(GetMousePosition(), ZoomIn)) ){
+    zoomPct(zoomamt);
+  }
+  
+  if( IsMouseButtonDown(MOUSE_BUTTON_LEFT) || IsGestureDetected(GESTURE_DRAG) ){
+    int scrH = GetScreenHeight(), scrW = GetScreenWidth();
+    Vector2 delta = GetMouseDelta();
+    
+    cx -= (delta.x / scrW) * 2*windowx;
+    cy += (delta.y / scrH) * 2*windowy;
+    
+    drawn = false;
+  }
+  
+  float scrollzoom = 0;
+  if( (scrollzoom = GetMouseWheelMove()) ){
+    zoomPct(-scrollzoom * zoomamt);
+  }
+
+  // Reset Screen Values
+  if( reset ){
+    setCenter(0, 0);
+    resetZoom();
+    moveamt = DEFAULT_MOVE_AMT;
+    zoomamt = DEFAULT_ZOOM_AMT;
+    reset = false;
+  }
+  
 }

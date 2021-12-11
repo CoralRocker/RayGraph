@@ -3,7 +3,15 @@
 #include <functional>
 #include <vector>
 
+#include "raygui.h"
+
 #define DEFAULT_ZOOM 10
+#define DEFAULT_MOVE_AMT 0.1
+#define DEFAULT_ZOOM_AMT 0.1
+
+#define RICON_ZOOM_IN 200
+#define RICON_ZOOM_OUT 201
+
 
 using namespace std;
 
@@ -52,16 +60,20 @@ class Grapher {
     void draw(double centerX, double centerY);
     void draw() { draw(cx, cy); }
     
+    void checkInput(double moveamt, double zoomamt, bool &reset, bool zoomIn, bool zoomOut, size_t framenum=0, size_t frames_mouse_delay=3);
+
     void resetZoom() { drawn = false; windowx = DEFAULT_ZOOM; windowy = DEFAULT_ZOOM; }
     void zoom(double amt) { drawn = false; windowx += amt; windowy += amt; }
     void zoomX(double amt) { drawn = false; windowx += amt; }
     void zoomY(double amt) { drawn = false; windowy += amt; }
-    void zoomPct(double pct) { drawn = false; windowx *= 1.f + (1.f-pct); windowy *= 1.f + (1.f-pct); }  
+    void zoomPct(double pct) { drawn = false; windowx *= 1.f + pct; windowy *= 1.f + pct; }  
     
     double getCenterX() { return cx; }
     double getCenterY() { return cy; }
     double getWindowX() { return windowx; }
     double getWindowY() { return windowy; }
+
+    const Rectangle UpArrow, DownArrow, RightArrow, LeftArrow, ZoomOut, ZoomIn, XRange, YRange;
 
   private:  
     void clearDrawing(); 
@@ -87,5 +99,7 @@ class Grapher {
     vector<GraphFunction> funcs;
     
     RenderTexture2D tex;
-       
+    
+    
+
 };
